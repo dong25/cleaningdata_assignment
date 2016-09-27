@@ -1,5 +1,13 @@
 #run_analysis.R 
-#insert description of this script/function
+#This script cleans up raw fitness data from Sumsung S smart watches;
+#cleans them up and generate a tidy dataset.  It does the following specifically
+#- load required packages
+#- download and unzip raw data files - this step can be skipped if files are already downloaded and unzipped
+#- read and merge sets of data related to training subsets - about 70% of the subjects
+#- read and merge sets of data related to test subjects - the remaining 30% of subjects
+#- extract only columns related to mean and standard deviations of various parameters;
+#- rename columns so that they are meaningful
+#- generate the final tidy data set which has the average of each variable for each activity and each subject
 #######################
 run_analysis <-function(){
   
@@ -9,10 +17,10 @@ run_analysis <-function(){
   library(stringr)
   library(gdata)
   
-  #downloading and unzipping data files
+  #downloading and unzipping data files. Comment these out if source files already exist
   url<-"https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-  #download.file(url,"data.zip")
-  #unzip("data.zip")
+  download.file(url,"data.zip")
+  unzip("data.zip")
   sourcedir<-list.dirs(recursive = FALSE)
   destdir<-"./"
   for (i in 1:length(sourcedir)){
@@ -52,9 +60,7 @@ run_analysis <-function(){
   #######################
   #merge training and test data, filter out only mean and std columns, 
   df_merged_total<-rbind(df_train_total,df_test_total)
-  #df_merged_total<-arrange(df_merged_total,subject,activity)
-  #df_merged_total_sample<-rbind(df_train_total,df_test_total)
-  
+
   #rename activities by descriptive names
   df_activity<-read.table("activity_labels.txt",stringsAsFactors = FALSE)
   df_activity[,1]<-as.character(df_activity[,1])
@@ -74,7 +80,6 @@ run_analysis <-function(){
   df_cleaned_total<-df_merged_total[,order3]
   
   #rename the columns according to codebook
-  
   mynames<-names(df_cleaned_total)
   mynames2<-str_replace_all(mynames,"\\(\\)","")
   mynames3<-str_replace_all(mynames2,"Body","")
@@ -88,22 +93,25 @@ run_analysis <-function(){
   #######################
   #sort df_cleaned_total by subject then activity
   df_cleaned_total<-arrange(df_cleaned_total,subject,activity)
+  
   #create tidy data set
   df2<-group_by(df_cleaned_total,subject,activity)
   df_tidy<-as.data.frame(summarise_each(df2,funs(mean)))
+  
   ## rename the columns by pre-pending 'mean_'
   temp01<-names(df_tidy)
   temp02<-paste("mean_",temp01[3:length(temp01)],sep = "")
   temp03<-c(temp01[1:2],temp02)
   colnames(df_tidy)<-temp03
+  
   ## format the number columns to limit the each number to 10 digits
   tt<-format(round(df_tidy[3:length(temp01)],8),nsmall = 8)
   df_tidy<-cbind(df_tidy[,1:2],tt)
 
-    #generate final tidy output table as well as exporting 
+  #generate final tidy output table as well as exporting 
   #a data frame into the global environment in case required
   #write.table(df_tidy,"final_tidy_dataset3.txt",sep = "\t\t")
-  write.fwf(df_tidy,"final_tidy_dataset.tx",justify = "centre", sep = "\t\t")
+  write.fwf(df_tidy,"final_tidy_dataset.txt",justify = "centre", sep = "\t\t")
   return(Final_tidy_data<<-df_tidy)
 
 }
