@@ -109,10 +109,14 @@ run_analysis <-function(){
   df_tidy<-cbind(df_tidy[,1:2],tt)
 
   #generate final tidy output table as well as exporting 
-  #a data frame into the global environment in case required
-  #write.table(df_tidy,"final_tidy_dataset3.txt",sep = "\t\t")
+ 
+  #write output file
+  #write.table(df_tidy,"final_tidy_dataset.txt",sep = "\t",row.names = FALSE,quote = FALSE)
   write.fwf(df_tidy,"final_tidy_dataset.txt",justify = "centre", sep = "\t\t")
+  
+  #a data frame into the global environment in case required
   return(Final_tidy_data<<-df_tidy)
+  
 
 }
 
